@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mahindra — Family Driven. Field Tested. — Anish Raghavan</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #080808;
+      --fg:     #EDEBE7;
+      --mid:    #909090;
+      --sub:    #555;
+      --amber:  #C8793A;
+      --rust:   #8C4820;
+      --straw:  #D9B97A;
+      --flood:  #140800;
+      --font:   -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; height: 100%; overflow: hidden; background: #050505; }
+
+    body {
+      font-family: var(--font); background: transparent; color: var(--fg);
+      height: 100%; overflow-y: scroll; overflow-x: hidden;
+      scroll-snap-type: y mandatory; scroll-snap-stop: always;
+    }
+
+    #space-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+    .sf { position: absolute; width: 1px; height: 1px; top: 0; left: 0; border-radius: 50%; }
+    #sf1 { animation: sdrift1 200s ease-in-out infinite alternate; }
+    #sf2 { animation: sdrift2 280s ease-in-out infinite alternate; }
+    #sf3 { animation: sdrift3 360s ease-in-out infinite alternate; }
+    @keyframes sdrift1 { from { transform: translate(0,0); } to { transform: translate(-20px,-14px); } }
+    @keyframes sdrift2 { from { transform: translate(0,0); } to { transform: translate(18px,-26px); } }
+    @keyframes sdrift3 { from { transform: translate(0,0); } to { transform: translate(-12px,20px); } }
+
+    #space-ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; will-change: background; }
+
+    .back {
+      position: fixed; top: 1.75rem; left: 2rem; z-index: 500;
+      font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--sub); text-decoration: none; transition: color 0.3s;
+    }
+    .back:hover { color: var(--fg); }
+
+    .screen {
+      position: relative; height: 100vh; height: 100svh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; overflow: hidden; scroll-snap-align: start;
+    }
+
+    /* ══ SCREEN 1 — THE PROBLEM ══ */
+    #s-problem { gap: 2.5rem; padding: 0 3rem; }
+
+    .problem-label {
+      position: absolute; top: 2.75rem; left: 50%; transform: translateX(-50%);
+      font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--mid); white-space: normal; text-align: center;
+      width: min(90vw, 700px); line-height: 1.6;
+      opacity: 0; animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+
+    .problem-context {
+      font-size: clamp(0.8rem, 1.2vw, 0.9rem); color: var(--mid);
+      letter-spacing: 0.06em; line-height: 1.7; text-align: center;
+      opacity: 0; animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+
+    .problem-number {
+      font-size: clamp(8rem, 22vw, 26rem); font-weight: 100;
+      letter-spacing: -0.04em; line-height: 0.9; color: var(--fg);
+      text-align: center; opacity: 0; animation: fadeUp 1s ease 1s forwards;
+    }
+
+    .problem-stat {
+      font-size: clamp(1rem, 1.8vw, 1.2rem); color: var(--mid);
+      line-height: 1.6; text-align: center;
+      opacity: 0; animation: fadeUp 0.9s ease 1.5s forwards;
+    }
+
+    .problem-weight {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem); color: var(--fg);
+      opacity: 0.7; text-align: center; font-style: italic;
+      line-height: 1.9; max-width: 580px;
+      animation: fadeUp 0.9s ease 2s forwards;
+    }
+
+    .scroll-hint {
+      position: absolute; bottom: 2.25rem; left: 50%; transform: translateX(-50%);
+      opacity: 0; animation: fadeIn 1s ease 2.8s forwards;
+    }
+    .scroll-hint span {
+      display: block; width: 1px; height: 36px; background: var(--sub);
+      animation: grow 2s ease-in-out 2.8s infinite;
+    }
+
+    /* ══ SCREEN 2 — THE BIG IDEA ══ */
+    #s-reveal { background: var(--bg); }
+
+    .flood {
+      position: absolute; inset: 0; background: var(--flood);
+      transform: translateY(100%);
+      transition: transform 1.7s cubic-bezier(0.22, 1, 0.36, 1); z-index: 0;
+    }
+    #s-reveal.active .flood { transform: translateY(0); }
+
+    .reveal-content {
+      position: relative; z-index: 2; text-align: center;
+      padding: 3rem 4rem; display: flex; flex-direction: column;
+      align-items: center; gap: 2.5rem;
+    }
+
+    .reveal-eyebrow {
+      font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--amber); opacity: 0; transition: opacity 0.8s ease 1.2s;
+    }
+    #s-reveal.active .reveal-eyebrow { opacity: 1; }
+
+    .big-idea {
+      font-size: clamp(1.6rem, 3.8vw, 3rem); font-weight: 300;
+      line-height: 1.45; max-width: min(92vw, 980px); color: var(--fg);
+      text-align: center;
+      opacity: 0; transition: opacity 0.9s ease 1.9s;
+    }
+    #s-reveal.active .big-idea { opacity: 1; }
+    .big-idea em { color: var(--straw); font-style: normal; }
+
+    .reveal-tagline {
+      font-size: clamp(1.8rem, 4.5vw, 4rem); font-weight: 100;
+      letter-spacing: 0.02em; color: var(--amber);
+      opacity: 0; transition: opacity 0.9s ease 2.7s;
+    }
+    #s-reveal.active .reveal-tagline { opacity: 1; }
+
+    .closing-line {
+      font-size: clamp(0.9rem, 1.4vw, 1rem); color: rgba(237,235,231,0.65);
+      font-style: italic; line-height: 1.8; max-width: 520px; text-align: center;
+      opacity: 0; transition: opacity 0.9s ease 3.5s;
+    }
+    #s-reveal.active .closing-line { opacity: 1; }
+
+    /* ══ SCREEN 3 — THE STRATEGY ══ */
+    #s-system { background: var(--bg); }
+
+    .system-inner {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3rem; width: min(94vw, 920px); padding: 0 2rem;
+    }
+
+    .system-label {
+      font-size: clamp(0.8rem, 1.2vw, 0.95rem); color: var(--mid);
+      text-align: center; line-height: 1.7; max-width: 640px;
+      opacity: 0; transition: opacity 0.8s ease 0.2s;
+    }
+    #s-system.active .system-label { opacity: 1; }
+
+    .dots-row {
+      display: flex; gap: clamp(2rem, 7vw, 6rem);
+      align-items: flex-start; justify-content: center;
+    }
+
+    .dot-item {
+      display: flex; flex-direction: column; align-items: center; gap: 1.25rem;
+      opacity: 0; transform: translateY(16px); transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    #s-system.active .dot-item:nth-child(1) { opacity: 1; transform: none; transition-delay: 0.4s; }
+    #s-system.active .dot-item:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.7s; }
+    #s-system.active .dot-item:nth-child(3) { opacity: 1; transform: none; transition-delay: 1.0s; }
+
+    .dot { width: clamp(56px, 6vw, 80px); height: clamp(56px, 6vw, 80px); border-radius: 50%; flex-shrink: 0; }
+    .dot-name { font-size: clamp(0.75rem, 1vw, 0.9rem); letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg); }
+
+    .presentation-lines {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 1.5rem; text-align: center; width: 100%; max-width: 640px;
+    }
+
+    .carried {
+      font-size: clamp(1rem, 1.6vw, 1.1rem); color: var(--mid);
+      line-height: 1.8; font-style: italic; opacity: 0; transition: opacity 0.9s ease 1.8s;
+    }
+    #s-system.active .carried { opacity: 1; }
+    .carried em { color: var(--straw); font-style: normal; }
+
+    .pres-quote {
+      font-size: clamp(1.1rem, 2.2vw, 1.4rem); font-weight: 300;
+      color: var(--fg); line-height: 1.75; opacity: 0; transition: opacity 0.9s ease;
+    }
+    #s-system.active .pres-quote-1 { opacity: 1; transition-delay: 2.6s; }
+
+    .score {
+      font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--amber); opacity: 0; transition: opacity 0.8s ease 3.8s;
+    }
+    #s-system.active .score { opacity: 1; }
+
+    /* ══ SCREEN 4 — THE CONCEPTS ══ */
+    #s-concepts { background: var(--bg); gap: 0; justify-content: center; }
+
+    .concepts-inner {
+      display: flex; flex-direction: column; gap: 0;
+      width: min(94vw, 860px); padding: 0 2rem;
+    }
+
+    .concepts-eyebrow {
+      font-size: 0.7rem; letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--sub); margin-bottom: 3rem; text-align: center;
+      opacity: 0; transition: opacity 0.8s ease 0.2s;
+    }
+    #s-concepts.active .concepts-eyebrow { opacity: 1; }
+
+    .concept-block {
+      display: grid; grid-template-columns: 3.5rem 1fr;
+      gap: 0 1.75rem; padding: 2rem 0; border-top: 1px solid #161616;
+      opacity: 0; transform: translateY(14px); transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    #s-concepts.active .concept-block:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.4s; }
+    #s-concepts.active .concept-block:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.9s; }
+    #s-concepts.active .concept-block:nth-child(4) { opacity: 1; transform: none; transition-delay: 1.4s; }
+    .concept-block:last-child { border-bottom: 1px solid #161616; }
+
+    .concept-num {
+      font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 100;
+      color: var(--amber); line-height: 1; padding-top: 0.15rem;
+    }
+
+    .concept-body { display: flex; flex-direction: column; gap: 0.5rem; }
+    .concept-title { font-size: clamp(1rem, 1.6vw, 1.2rem); font-weight: 400; color: var(--fg); line-height: 1.3; }
+    .concept-desc { font-size: clamp(0.78rem, 1.1vw, 0.9rem); color: var(--mid); line-height: 1.75; }
+    .concept-metric {
+      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--amber); margin-top: 0.4rem;
+    }
+
+    /* ══ SCREEN 5 — THE DECK ══ */
+    #s-deck { background: var(--bg); flex-direction: column; gap: 0; padding: 4rem 3rem 2rem; }
+
+    .pb-header { flex-shrink: 0; text-align: center; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .pb-eyebrow { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--sub); }
+    .pb-title { font-size: clamp(1.2rem, 2.5vw, 1.8rem); font-weight: 300; color: var(--fg); }
+    .pb-credit { font-size: clamp(0.8rem, 1.2vw, 0.95rem); color: var(--mid); font-style: italic; }
+
+    .pb-frame { flex: 1; width: 100%; border: 1px solid #1e1e1e; border-radius: 4px; overflow: hidden; min-height: 0; }
+    .pb-frame iframe { width: 100%; height: 100%; border: none; display: block; }
+
+    .pb-footer {
+      flex-shrink: 0; width: 100%; display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 3rem; margin-top: 1.5rem;
+      padding-top: 1.25rem; border-top: 1px solid #1a1a1a;
+    }
+
+    .pb-summary { display: flex; flex-direction: column; gap: 0.5rem; max-width: 680px; }
+    .pb-summary-label { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); }
+    .pb-summary-body { font-size: clamp(0.78rem, 1vw, 0.88rem); color: var(--mid); line-height: 1.7; }
+
+    .pb-home {
+      flex-shrink: 0; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--mid); text-decoration: none; border: 1px solid #2a2a2a;
+      padding: 0.65rem 1.25rem; border-radius: 2px; white-space: nowrap;
+      align-self: flex-end; transition: color 0.3s, border-color 0.3s;
+    }
+    .pb-home:hover { color: var(--fg); border-color: var(--mid); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes grow {
+      0%, 100% { transform: scaleY(0.3); transform-origin: top; opacity: 0.3; }
+      50%       { transform: scaleY(1);   transform-origin: top; opacity: 1;   }
+    }
+
+    @media (max-width: 680px) {
+      #s-problem { gap: 1.75rem; padding: 0 1.5rem; }
+      .problem-number { font-size: clamp(5rem, 26vw, 12rem); }
+      .system-inner { gap: 2rem; padding: 0 1.5rem; }
+      .dots-row { gap: 1.5rem; }
+      .reveal-content { padding: 2rem 1.5rem; }
+      .concepts-inner { padding: 0 1.5rem; }
+      #s-deck { padding: 2rem 1.5rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="space-bg" aria-hidden="true">
+    <div class="sf" id="sf1"></div>
+    <div class="sf" id="sf2"></div>
+    <div class="sf" id="sf3"></div>
+  </div>
+  <div id="space-ambient" aria-hidden="true"></div>
+
+  <a class="back" href="../index.html">← Work</a>
+
+  <!-- ══ SCREEN 1 — THE PROBLEM ══ -->
+  <section class="screen" id="s-problem">
+    <div class="problem-label">
+      Mahindra USA &nbsp;&middot;&nbsp; "Family Driven. Field Tested." &nbsp;&middot;&nbsp; Lead Campaign Strategist &nbsp;&middot;&nbsp; Media Planner
+    </div>
+
+    <div style="text-align:center;">
+      <p class="problem-context">
+        Mahindra wanted to grow market share in a declining category.<br>
+        Their competitors had over ten times the budget.
+      </p>
+      <div class="problem-number">10×</div>
+      <div class="problem-stat">John Deere and Kubota&rsquo;s budget advantage over Mahindra.</div>
+    </div>
+
+    <p class="problem-weight">
+      You can&rsquo;t outspend the category leader.<br>
+      But you can outposition them &mdash;<br>
+      if you find the thing they&rsquo;ve been too big to say.
+    </p>
+
+    <div class="scroll-hint"><span></span></div>
+  </section>
+
+  <!-- ══ SCREEN 2 — THE BIG IDEA ══ -->
+  <section class="screen anim-screen" id="s-reveal">
+    <div class="flood"></div>
+    <div class="reveal-content">
+      <p class="reveal-eyebrow">The Strategic Repositioning</p>
+      <p class="big-idea">
+        Rural buyers don&rsquo;t buy tractors.<br>
+        They buy <em>identity</em>.<br>
+        We built a campaign that spoke that language.
+      </p>
+      <div class="reveal-tagline">Family Driven. Field Tested.</div>
+      <p class="closing-line">
+        Not a product line. A value system.<br>
+        The campaign didn&rsquo;t sell a tractor &mdash; it sold the life behind it.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ SCREEN 3 — THE STRATEGY ══ -->
+  <section class="screen anim-screen" id="s-system">
+    <div class="system-inner">
+
+      <div class="system-label">
+        The strategy moved through three phases &mdash;<br>
+        understand who&rsquo;s buying, speak their language, then show up where they live.
+      </div>
+
+      <div class="dots-row">
+        <div class="dot-item">
+          <span class="dot" style="background:#C8793A"></span>
+          <span class="dot-name">Audience</span>
+        </div>
+        <div class="dot-item">
+          <span class="dot" style="background:#8C4820"></span>
+          <span class="dot-name">Creative</span>
+        </div>
+        <div class="dot-item">
+          <span class="dot" style="background:#D9B97A"></span>
+          <span class="dot-name">Media</span>
+        </div>
+      </div>
+
+      <div class="presentation-lines">
+        <p class="carried">
+          Led strategy from brief to final presentation &mdash;<br>
+          brand positioning, <em>persona development</em>, campaign architecture, and full media plan.
+        </p>
+        <p class="pres-quote pres-quote-1">
+          &ldquo;People believe hard work defines them &mdash;<br>
+          but they&rsquo;re looking for equipment<br>
+          that works just as hard and stands behind its word.&rdquo;
+        </p>
+        <p class="score">Target KPIs &nbsp;&middot;&nbsp; +15% Dealership Visits &nbsp;&middot;&nbsp; +30% Social Engagement &nbsp;&middot;&nbsp; +1% Market Share</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ SCREEN 4 — THE CONCEPTS ══ -->
+  <section class="screen anim-screen" id="s-concepts">
+    <div class="concepts-inner">
+      <p class="concepts-eyebrow">Mahindra &mdash; Campaign Executions</p>
+
+      <div class="concept-block">
+        <div class="concept-num">01</div>
+        <div class="concept-body">
+          <div class="concept-title">The Mahindra Field Fest</div>
+          <div class="concept-desc">A one-day country music festival in San Marcos, Texas &mdash; built around families, farmers, and the rural way of life, powered by Mahindra. Live tractor demos, on-site dealer connections, and a stage that put the brand at the center of the culture it was trying to own. Not an ad. An experience that converts fans into customers.</div>
+          <div class="concept-metric">Projected 15,000–20,000 qualified attendees</div>
+        </div>
+      </div>
+
+      <div class="concept-block">
+        <div class="concept-num">02</div>
+        <div class="concept-body">
+          <div class="concept-title">Rodeo Circuit &amp; Mechanical Tractor Bull</div>
+          <div class="concept-desc">Trade show presence at the Austin Rodeo with one twist: a pivot-mounted tractor reimagined as a mechanical bull. Safe, memorable, and built to stop traffic. Mahindra shows up at the rodeo not as a sponsor, but as part of the show &mdash; turning a product demo into a cultural moment that rural audiences actually talk about.</div>
+          <div class="concept-metric">Trade show + rodeo circuit activation</div>
+        </div>
+      </div>
+
+      <div class="concept-block">
+        <div class="concept-num">03</div>
+        <div class="concept-body">
+          <div class="concept-title">National Agriculture Day Influencer Drop</div>
+          <div class="concept-desc">A timed influencer series launching on National Agriculture Day &mdash; short-form video showing real people prepping land, running projects, and showcasing Mahindra equipment doing the work. Product-for-content trade instead of cash, keeping the budget lean and the content authentic. Three-part cadence over six weeks to build sustained engagement.</div>
+          <div class="concept-metric">Series 1: "Tested on Our Field" &nbsp;&middot;&nbsp; Series 2: "Tough Jobs Made Easy" &nbsp;&middot;&nbsp; Series 3: "Spring Strong"</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ SCREEN 5 — THE DECK ══ -->
+  <section class="screen" id="s-deck">
+    <div class="pb-header">
+      <span class="pb-eyebrow">Mahindra USA &mdash; Full Campaign Document</span>
+      <span class="pb-title">Family Driven. Field Tested.</span>
+      <span class="pb-credit">Strategy, positioning &amp; media plan by Group Eight &nbsp;&middot;&nbsp; Lead Strategist: Anish Raghavan</span>
+    </div>
+
+    <div class="pb-frame">
+      <iframe src="../Portfolio%20Projects/Mahindra%20Tractors/Family%20Driven.%20Field%20Tested.%20(3).pdf" title="Mahindra Campaign Deck"></iframe>
+    </div>
+
+    <div class="pb-footer">
+      <div class="pb-summary">
+        <p class="pb-summary-label">Anish Raghavan &mdash; Lead Campaign Strategist &amp; Media Planner</p>
+        <p class="pb-summary-body">
+          Led the full strategic development: brand repositioning from product-first to identity-first, audience persona creation (Earl &amp; Linda, Clint &amp; Sarah), campaign theme, and a multi-channel media plan spanning paid social, video, trade shows, rodeo activation, experiential events, and influencer partnerships. Built against hard KPIs &mdash; +15% dealership visits, +30% social engagement, +1% market share by Q2.
+        </p>
+      </div>
+      <a class="pb-home" href="../index.html">← Back to Portfolio</a>
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      function makeStars(el, count, spread, minOp, maxOp) {
+        const W = Math.max(window.innerWidth, 1600);
+        const H = Math.max(window.innerHeight, 900);
+        let s = [];
+        for (let i = 0; i < count; i++) {
+          const x  = Math.round(Math.random() * W * 2 - W * 0.5);
+          const y  = Math.round(Math.random() * H * 2 - H * 0.5);
+          const op = +(Math.random() * (maxOp - minOp) + minOp).toFixed(2);
+          s.push(`${x}px ${y}px 0 ${spread}px rgba(255,255,255,${op})`);
+        }
+        el.style.boxShadow = s.join(',');
+      }
+      makeStars(document.getElementById('sf1'), 110, 0, 0.04, 0.16);
+      makeStars(document.getElementById('sf2'),  40, 0, 0.10, 0.28);
+      makeStars(document.getElementById('sf3'),  10, 1, 0.18, 0.40);
+    })();
+
+    const spaceAmbient = document.getElementById('space-ambient');
+    let ambX = window.innerWidth / 2, ambY = window.innerHeight / 2;
+    let aX = ambX, aY = ambY;
+    document.addEventListener('mousemove', e => { ambX = e.clientX; ambY = e.clientY; });
+    (function ambTick() {
+      aX += (ambX - aX) * 0.012;
+      aY += (ambY - aY) * 0.012;
+      spaceAmbient.style.background =
+        `radial-gradient(800px circle at ${aX.toFixed(1)}px ${aY.toFixed(1)}px, rgba(200,121,58,0.055) 0%, transparent 70%)`;
+      requestAnimationFrame(ambTick);
+    })();
+
+    const bgAudio = new Audio('../lofi-bg.mp3');
+    bgAudio.loop = true; bgAudio.volume = 0;
+    let audioReady = false;
+    function initAudio() {
+      if (audioReady) return; audioReady = true;
+      bgAudio.play().catch(() => {});
+      let v = 0;
+      const step = () => { v = Math.min(v + 0.004, 0.018); bgAudio.volume = v; if (v < 0.018) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }
+    document.addEventListener('click', initAudio, { once: true });
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('active'); observer.unobserve(e.target); } });
+    }, { threshold: 0.25 });
+    document.querySelectorAll('.anim-screen').forEach(s => observer.observe(s));
+  </script>
+
+</body>
+</html>

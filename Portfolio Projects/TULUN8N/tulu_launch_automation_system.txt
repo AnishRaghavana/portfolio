@@ -1,0 +1,20 @@
+TULU – Launch Automation System
+
+At TULU, I built an automation system that simplified how new buildings
+launched on the platform. Starting from a database of properties, I
+created workflows that generated QR codes, built product listings, and
+produced launch pages for each building. Everything fed into a central
+sheet that organized the data and powered automated marketing collateral
+like flyers, digital billboards, business cards, posters, and email
+campaigns.
+
+Working inside a startup changed how I approach problems. Things move
+fast, resources are limited, and you have to figure things out as you
+go. I learned to adapt quickly, build scrappy solutions, and keep
+improving systems once they were live.
+
+More than anything, this experience shaped how I think. I became
+comfortable building without a perfect roadmap, solving problems
+independently, and turning rough ideas into working systems. That
+startup mindset and willingness to figure things out has become one of
+the most valuable things I took from my time at TULU.

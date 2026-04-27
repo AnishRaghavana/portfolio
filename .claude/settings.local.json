@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/anish/Downloads/**)",
+      "Bash(unzip -l \"Portfolio Projects.zip\")",
+      "Bash(unzip -p \"Anish_Raghavan_Resume_Master.docx\" word/document.xml)",
+      "Bash(python *)",
+      "Bash(start http://localhost:3000)",
+      "Bash(cp \"/c/Users/anish/Downloads/Creative Folder/Sonic Football FINAL.png\" /c/Users/anish/portfolio/nfl/sonic-football.png)",
+      "Bash(cp \"/c/Users/anish/Downloads/Creative Folder/Sonic Gloves FINAL.png\" /c/Users/anish/portfolio/nfl/sonic-gloves.png)",
+      "Bash(cp \"/c/Users/anish/Downloads/Creative Folder/Sonic Belt FINAL.png\" /c/Users/anish/portfolio/nfl/sonic-belt.png)",
+      "Bash(cp \"/c/Users/anish/Downloads/Creative Folder/Sonic Emotional Card FINAL.png\" /c/Users/anish/portfolio/nfl/sonic-emotional.png)",
+      "Bash(cp \"/c/Users/anish/Downloads/Creative Folder/Sonic Intellectual Card FINAL.png\" /c/Users/anish/portfolio/nfl/sonic-intellectual.png)",
+      "Bash(python3 *)"
+    ]
+  }
+}

@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Push Forward — NFL · Anish Raghavan</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #080808;
+      --fg:     #EDEBE7;
+      --mid:    #909090;
+      --sub:    #555;
+      --navy:   #002B5B;
+      --pink:   #F06DAC;
+      --blue:   #4FBDE8;
+      --green:  #78C040;
+      --yellow: #F9C926;
+      --font:   -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      height: 100%;
+      overflow: hidden;
+      background: #050505;
+    }
+
+    body {
+      font-family: var(--font);
+      background: transparent;
+      color: var(--fg);
+      height: 100%;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      scroll-snap-stop: always;
+    }
+
+    /* ── Space background ── */
+    #space-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .sf {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      top: 0;
+      left: 0;
+      border-radius: 50%;
+    }
+
+    #sf1 { animation: sdrift1 200s ease-in-out infinite alternate; }
+    #sf2 { animation: sdrift2 280s ease-in-out infinite alternate; }
+    #sf3 { animation: sdrift3 360s ease-in-out infinite alternate; }
+
+    @keyframes sdrift1 { from { transform: translate(0,0); } to { transform: translate(-20px,-14px); } }
+    @keyframes sdrift2 { from { transform: translate(0,0); } to { transform: translate(18px,-26px);  } }
+    @keyframes sdrift3 { from { transform: translate(0,0); } to { transform: translate(-12px,20px);  } }
+
+    #space-ambient {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(800px circle at 50% 50%, rgba(42,100,160,0.05) 0%, transparent 70%);
+      will-change: background;
+    }
+
+    .back {
+      position: fixed;
+      top: 1.75rem;
+      left: 2rem;
+      z-index: 500;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sub);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .back:hover { color: var(--fg); }
+
+    .screen {
+      position: relative;
+      height: 100vh;
+      height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      scroll-snap-align: start;
+    }
+
+    /* ══════════════════════════
+       SCREEN 1 — THE PROBLEM
+    ══════════════════════════ */
+    #s-problem { gap: 2.5rem; padding: 0 3rem; }
+
+    .problem-label {
+      position: absolute;
+      top: 2.75rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mid);
+      white-space: normal;
+      text-align: center;
+      width: min(90vw, 700px);
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+
+    #s-problem > div[style] {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      text-align: center;
+    }
+
+    .problem-context {
+      font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+      color: var(--mid);
+      letter-spacing: 0.06em;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+
+    .problem-number {
+      font-size: clamp(8rem, 22vw, 26rem);
+      font-weight: 100;
+      letter-spacing: -0.04em;
+      line-height: 0.9;
+      color: var(--fg);
+      opacity: 0;
+      animation: fadeUp 1s ease 1s forwards;
+    }
+
+    .problem-stat {
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      color: var(--mid);
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeUp 0.9s ease 1.5s forwards;
+    }
+
+    .problem-weight {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      color: var(--fg);
+      opacity: 0.7;
+      text-align: center;
+      font-style: italic;
+      line-height: 1.9;
+      max-width: 560px;
+      animation: fadeUp 0.9s ease 2s forwards;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      animation: fadeIn 1s ease 2.8s forwards;
+    }
+    .scroll-hint span {
+      display: block;
+      width: 1px;
+      height: 36px;
+      background: var(--sub);
+      animation: grow 2s ease-in-out 2.8s infinite;
+    }
+
+    /* ══════════════════════════
+       SCREEN 2 — THE BIG IDEA
+    ══════════════════════════ */
+    #s-reveal { background: var(--bg); }
+
+    .flood {
+      position: absolute;
+      inset: 0;
+      background: var(--navy);
+      transform: translateY(100%);
+      transition: transform 1.7s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 0;
+    }
+    #s-reveal.active .flood { transform: translateY(0); }
+
+    .streaks { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+
+    .streak {
+      position: absolute;
+      height: 10px;
+      width: 100vw;
+      left: 0;
+      transform: translateX(-100%);
+      will-change: transform;
+      border-radius: 2px;
+    }
+    .streak-pink   { top: 39%; background: var(--pink);   transition: transform 0.75s ease; }
+    .streak-blue   { top: 46%; background: var(--blue);   transition: transform 0.75s ease; }
+    .streak-green  { top: 53%; background: var(--green);  transition: transform 0.75s ease; }
+    .streak-yellow { top: 60%; background: var(--yellow); transition: transform 0.75s ease; }
+
+    #s-reveal.active .streak-pink   { transform: translateX(100%); transition-delay: 0.55s; }
+    #s-reveal.active .streak-blue   { transform: translateX(100%); transition-delay: 0.72s; }
+    #s-reveal.active .streak-green  { transform: translateX(100%); transition-delay: 0.89s; }
+    #s-reveal.active .streak-yellow { transform: translateX(100%); transition-delay: 1.06s; }
+
+    .reveal-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 3rem 4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .big-idea {
+      font-size: clamp(1.6rem, 3.8vw, 3rem);
+      font-weight: 300;
+      line-height: 1.45;
+      max-width: min(92vw, 980px);
+      color: var(--fg);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.9s ease 1.9s;
+    }
+    #s-reveal.active .big-idea { opacity: 1; }
+
+    .campaign-logo {
+      width: clamp(200px, 36vw, 520px);
+      height: auto;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.8s ease 2.6s;
+    }
+    #s-reveal.active .campaign-logo { opacity: 1; }
+
+    .closing-line {
+      font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+      color: rgba(237,235,231,0.78);
+      font-style: italic;
+      line-height: 1.7;
+      max-width: 600px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.9s ease 3.3s;
+    }
+    #s-reveal.active .closing-line { opacity: 1; }
+
+    /* ══════════════════════════
+       SCREEN 3 — THE FOUR PILLARS
+    ══════════════════════════ */
+    #s-system { background: var(--bg); }
+
+    .system-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3rem;
+      width: min(94vw, 920px);
+      padding: 0 2rem;
+    }
+
+    .system-label {
+      font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+      color: var(--mid);
+      text-align: center;
+      line-height: 1.7;
+      max-width: 600px;
+      opacity: 0;
+      transition: opacity 0.8s ease 0.2s;
+    }
+    #s-system.active .system-label { opacity: 1; }
+
+    .dots-row {
+      display: flex;
+      gap: clamp(2rem, 7vw, 6rem);
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .dot-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    #s-system.active .dot-item:nth-child(1) { opacity: 1; transform: none; transition-delay: 0.4s; }
+    #s-system.active .dot-item:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.7s; }
+    #s-system.active .dot-item:nth-child(3) { opacity: 1; transform: none; transition-delay: 1.0s; }
+    #s-system.active .dot-item:nth-child(4) { opacity: 1; transform: none; transition-delay: 1.3s; }
+
+    .dot {
+      width: clamp(56px, 6vw, 80px);
+      height: clamp(56px, 6vw, 80px);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-name {
+      font-size: clamp(0.75rem, 1vw, 0.9rem);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--fg);
+    }
+
+    .presentation-lines {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      text-align: center;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .carried {
+      font-size: clamp(1rem, 1.6vw, 1.1rem);
+      color: var(--mid);
+      line-height: 1.8;
+      font-style: italic;
+      opacity: 0;
+      transition: opacity 0.9s ease 1.8s;
+    }
+    #s-system.active .carried { opacity: 1; }
+    .carried em { color: var(--yellow); font-style: normal; }
+
+    .pres-quote {
+      font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+      font-weight: 300;
+      color: var(--fg);
+      line-height: 1.75;
+      opacity: 0;
+      transition: opacity 0.9s ease;
+    }
+    #s-system.active .pres-quote-1 { opacity: 1; transition-delay: 2.4s; }
+    #s-system.active .pres-quote-2 { opacity: 1; transition-delay: 3.4s; }
+
+    .beat {
+      font-size: 0.72rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--mid);
+      opacity: 0;
+      transition: opacity 0.6s ease 3s;
+    }
+    #s-system.active .beat { opacity: 1; }
+
+    .score {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      opacity: 0;
+      transition: opacity 0.8s ease 4.2s;
+    }
+    #s-system.active .score { opacity: 1; }
+
+    /* ══════════════════════════
+       SCREEN 4 — THE WORK
+    ══════════════════════════ */
+    #s-work {
+      justify-content: center;
+      overflow: hidden;
+      background: var(--bg);
+      gap: 0;
+    }
+
+    .work-header {
+      flex-shrink: 0;
+      text-align: center;
+      margin-bottom: 2.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .work-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--sub);
+    }
+
+    .work-title {
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      font-weight: 300;
+      color: var(--fg);
+    }
+
+    .work-subtitle {
+      font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+      color: var(--mid);
+      font-style: italic;
+    }
+
+    .strip-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .strip-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .strip-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0 2rem;
+    }
+
+    .strip-row-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    .strip-row-desc {
+      font-size: clamp(0.78rem, 1vw, 0.88rem);
+      color: var(--mid);
+      opacity: 0.6;
+      line-height: 1.55;
+    }
+
+    .work-credit {
+      flex-shrink: 0;
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sub);
+    }
+
+    /* ══════════════════════════
+       SCREEN 5 — PLANSBOOK
+    ══════════════════════════ */
+    #s-plansbook {
+      background: var(--bg);
+      flex-direction: column;
+      gap: 0;
+      padding: 4rem 3rem 2rem;
+    }
+
+    .pb-header {
+      flex-shrink: 0;
+      text-align: center;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .pb-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--sub);
+    }
+
+    .pb-title {
+      font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+      font-weight: 300;
+      color: var(--fg);
+    }
+
+    .pb-credit {
+      font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+      color: var(--mid);
+      font-style: italic;
+    }
+
+    .pb-frame {
+      flex: 1;
+      width: 100%;
+      border: 1px solid #1e1e1e;
+      border-radius: 4px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .pb-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .pb-footer {
+      flex-shrink: 0;
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 3rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .pb-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 680px;
+    }
+
+    .pb-summary-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--yellow);
+    }
+
+    .pb-summary-body {
+      font-size: clamp(0.78rem, 1vw, 0.88rem);
+      color: var(--mid);
+      line-height: 1.7;
+    }
+
+    .pb-home {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      border: 1px solid #2a2a2a;
+      padding: 0.65rem 1.25rem;
+      border-radius: 2px;
+      white-space: nowrap;
+      align-self: flex-end;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    .pb-home:hover { color: var(--fg); border-color: var(--mid); }
+
+    .strip { width: 100%; overflow: hidden; flex-shrink: 0; }
+
+    .strip-inner {
+      display: flex;
+      gap: 1rem;
+      width: max-content;
+      will-change: transform;
+    }
+
+    .strip-inner img {
+      height: clamp(160px, 20vh, 230px);
+      width: auto;
+      display: block;
+      object-fit: cover;
+      flex-shrink: 0;
+      filter: brightness(0.92);
+      transition: filter 0.4s;
+    }
+    .strip-inner img:hover { filter: brightness(1); }
+
+    /* Both rows use the same keyframe — opposite directions via different from/to */
+    #row-sonic .strip-inner {
+      animation: drift-left 38s linear infinite;
+    }
+    #row-lego .strip-inner {
+      /* start from the midpoint so it's immediately mid-scroll, not at the beginning */
+      animation: drift-left 52s linear infinite reverse;
+      animation-delay: -10s;
+    }
+
+    /* ── Keyframes ── */
+    @keyframes drift-left {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    @keyframes fadeUp  {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes grow {
+      0%, 100% { transform: scaleY(0.3); transform-origin: top; opacity: 0.3; }
+      50%       { transform: scaleY(1);   transform-origin: top; opacity: 1;   }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 680px) {
+      #s-problem { gap: 1.75rem; padding: 0 1.5rem; }
+      .problem-number { font-size: clamp(5rem, 26vw, 12rem); }
+      .system-inner { gap: 2rem; padding: 0 1.5rem; }
+      .dots-row { gap: 1.5rem; }
+      .strip-inner img { height: 130px; }
+      .big-idea { font-size: 1.4rem; }
+      .reveal-content { padding: 2rem 1.5rem; }
+      .work-header { margin-bottom: 1.5rem; }
+      .strip-meta { padding: 0 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="space-bg" aria-hidden="true">
+    <div class="sf" id="sf1"></div>
+    <div class="sf" id="sf2"></div>
+    <div class="sf" id="sf3"></div>
+  </div>
+  <div id="space-ambient" aria-hidden="true"></div>
+
+  <a class="back" href="../index.html">← Work</a>
+
+  <!-- ══════════════════════════
+       SCREEN 1 — THE PROBLEM
+  ══════════════════════════ -->
+  <section class="screen" id="s-problem">
+
+    <div class="problem-label">
+      NSAC 2025 &nbsp;&middot;&nbsp; National Student Advertising Competition &nbsp;&middot;&nbsp; District 10 &nbsp;&middot;&nbsp; The NFL
+    </div>
+
+    <div style="text-align:center;">
+      <p class="problem-context">
+        In 2025, the NFL briefed 400+ student agencies across the country.<br>
+        Build a campaign that connects the NFL to the families it already serves.
+      </p>
+      <div class="problem-number">32%</div>
+      <div class="problem-stat">of people know the NFL&rsquo;s youth programs exist.</div>
+    </div>
+
+    <p class="problem-weight">
+      The NFL runs six programs actively changing kids&rsquo; lives &mdash;<br>
+      Play 60, Flag, Inspire Change, Character Playbook, and more.<br>
+      Billions of impressions. Almost no awareness of the work.
+    </p>
+
+    <div class="scroll-hint"><span></span></div>
+  </section>
+
+  <!-- ══════════════════════════
+       SCREEN 2 — THE BIG IDEA
+  ══════════════════════════ -->
+  <section class="screen anim-screen" id="s-reveal">
+    <div class="flood"></div>
+
+    <div class="streaks">
+      <div class="streak streak-pink"></div>
+      <div class="streak streak-blue"></div>
+      <div class="streak streak-green"></div>
+      <div class="streak streak-yellow"></div>
+    </div>
+
+    <div class="reveal-content">
+      <p class="big-idea">
+        Life is the hardest game we play.<br>
+        The NFL isn&rsquo;t just a brand.<br>
+        It&rsquo;s a teammate.
+      </p>
+
+      <img src="push-forward-logo.png" alt="Push Forward" class="campaign-logo">
+
+      <p class="closing-line">
+        That&rsquo;s why we created Push Forward.<br>
+        Because no one was meant to play the hardest game in the world alone.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════
+       SCREEN 3 — THE FOUR PILLARS
+  ══════════════════════════ -->
+  <section class="screen anim-screen" id="s-system">
+    <div class="system-inner">
+
+      <div class="system-label">
+        The NFL&rsquo;s six youth programs address four universal needs &mdash;<br>
+        the same four needs every child carries, in every family, in every zip code.
+      </div>
+
+      <div class="dots-row">
+        <div class="dot-item">
+          <span class="dot" style="background:var(--pink)"></span>
+          <span class="dot-name">Emotional</span>
+        </div>
+        <div class="dot-item">
+          <span class="dot" style="background:var(--blue)"></span>
+          <span class="dot-name">Intellectual</span>
+        </div>
+        <div class="dot-item">
+          <span class="dot" style="background:var(--green)"></span>
+          <span class="dot-name">Physical</span>
+        </div>
+        <div class="dot-item">
+          <span class="dot" style="background:var(--yellow)"></span>
+          <span class="dot-name">Social</span>
+        </div>
+      </div>
+
+      <div class="presentation-lines">
+        <p class="carried">
+          As Creative Director, I led the campaign from brief to stage.<br>
+          I presented the <em>Social</em> pillar to NFL executives.
+        </p>
+
+        <p class="pres-quote pres-quote-1">
+          &ldquo;The one who has your back, rain or shine.<br>
+          The one who helps you Push Forward.&rdquo;
+        </p>
+
+        <p class="beat">[ Beat. ]</p>
+
+        <p class="pres-quote pres-quote-2">
+          &ldquo;Because that is what every parent<br>
+          is looking for right now &mdash;<br>
+          someone to show them<br>
+          it&rsquo;s not too late to change.&rdquo;
+        </p>
+
+        <p class="score">2nd Place &nbsp;&middot;&nbsp; District 10&rsquo;s Highest Presentation Score</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════
+       SCREEN 4 — THE WORK
+  ══════════════════════════ -->
+  <section class="screen" id="s-work">
+
+    <div class="work-header">
+      <span class="work-eyebrow">Push Forward &mdash; Campaign Executions</span>
+      <span class="work-title">Two creative worlds. Four pillars. One campaign.</span>
+      <span class="work-subtitle">Designed and art directed by Anish Raghavan.</span>
+    </div>
+
+    <div class="strip-group">
+
+      <!-- Row 1: Sonic Flag Football Kit -->
+      <div class="strip-row">
+        <div class="strip-meta">
+          <span class="strip-row-label">Sonic &mdash; Physical &amp; Social Pillars</span>
+          <span class="strip-row-desc">
+            A custom flag football kit built around movement and identity. Sonic-checkered football, custom gloves, flag belts with a text-shattering color scheme and hand-drawn Sonic characters. Four collectible zone cards &mdash; one per pillar &mdash; that kids earn and trade.
+          </span>
+        </div>
+        <div class="strip" id="row-sonic">
+          <div class="strip-inner">
+            <img src="sonic-football.png"     alt="Sonic football">
+            <img src="sonic-gloves.png"       alt="Sonic gloves">
+            <img src="sonic-belt.png"         alt="Flag belt">
+            <img src="sonic-emotional.png"    alt="Emotional zone card">
+            <img src="sonic-intellectual.png" alt="Intellectual zone card">
+            <img src="sonic-physical.png"     alt="Physical zone card">
+            <img src="sonic-social.png"       alt="Social zone card">
+            <img src="sonic-football.png"     alt="">
+            <img src="sonic-gloves.png"       alt="">
+            <img src="sonic-belt.png"         alt="">
+            <img src="sonic-emotional.png"    alt="">
+            <img src="sonic-intellectual.png" alt="">
+            <img src="sonic-physical.png"     alt="">
+            <img src="sonic-social.png"       alt="">
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Brick by Brick -->
+      <div class="strip-row">
+        <div class="strip-meta">
+          <span class="strip-row-label">Brick by Brick &mdash; Emotional &amp; Intellectual Pillars</span>
+          <span class="strip-row-desc">
+            Custom LEGO bricks color-coded to each pillar. A live interactive mosaic where parents and kids place bricks side by side &mdash; then watch the finished piece get hoisted onto a billboard. Plus Brick by Brick: a TV series mockup with a custom logo and hand-textured wallpaper, about what families build when they finally show up for each other.
+          </span>
+        </div>
+        <div class="strip" id="row-lego">
+          <div class="strip-inner">
+            <img src="lego-block-pink.png"     alt="Emotional brick">
+            <img src="lego-block-blue.png"     alt="Intellectual brick">
+            <img src="lego-block-green.png"    alt="Physical brick">
+            <img src="lego-block-yellow.png"   alt="Social brick">
+            <img src="lego-installation-1.png" alt="Live mosaic installation">
+            <img src="lego-installation-2.png" alt="Mosaic in progress">
+            <img src="lego-billboard.jpg"      alt="Times Square billboard">
+            <img src="lego-brick-by-brick.png" alt="Brick by Brick TV mockup">
+            <img src="lego-block-pink.png"     alt="">
+            <img src="lego-block-blue.png"     alt="">
+            <img src="lego-block-green.png"    alt="">
+            <img src="lego-block-yellow.png"   alt="">
+            <img src="lego-installation-1.png" alt="">
+            <img src="lego-installation-2.png" alt="">
+            <img src="lego-billboard.jpg"      alt="">
+            <img src="lego-brick-by-brick.png" alt="">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="work-credit">Designed by Anish Raghavan</p>
+
+  </section>
+
+  <!-- ══════════════════════════
+       SCREEN 5 — THE PLANSBOOK
+  ══════════════════════════ -->
+  <section class="screen" id="s-plansbook">
+
+    <div class="pb-header">
+      <span class="pb-eyebrow">Push Forward &mdash; Full Campaign Document</span>
+      <span class="pb-title">The Plansbook</span>
+      <span class="pb-credit">Written and presented by Team 282 &nbsp;&middot;&nbsp; NSAC District 10 &nbsp;&middot;&nbsp; 2025</span>
+    </div>
+
+    <div class="pb-frame">
+      <iframe src="plansbook.pdf" title="Push Forward Plansbook"></iframe>
+    </div>
+
+    <div class="pb-footer">
+      <div class="pb-summary">
+        <p class="pb-summary-label">Anish Raghavan &mdash; Creative Director</p>
+        <p class="pb-summary-body">
+          Led creative strategy and art direction across the full campaign. Concepted and built both executions from scratch &mdash; the Sonic flag football kit and the Brick by Brick LEGO campaign. Designed every visual asset: the custom football, gloves, flag belts, zone trading cards, pillar bricks, mosaic installation, billboard, and the Brick by Brick TV series mockup. Presented the Social pillar live to NFL executives. The team earned District 10&rsquo;s highest presentation score and placed 2nd overall.
+        </p>
+      </div>
+      <a class="pb-home" href="../index.html">← Back to Portfolio</a>
+    </div>
+
+  </section>
+
+  <script>
+    /* ── Starfield ── */
+    (function() {
+      function makeStars(el, count, spread, minOp, maxOp) {
+        const W = Math.max(window.innerWidth,  1600);
+        const H = Math.max(window.innerHeight, 900);
+        let s = [];
+        for (let i = 0; i < count; i++) {
+          const x  = Math.round(Math.random() * W * 2 - W * 0.5);
+          const y  = Math.round(Math.random() * H * 2 - H * 0.5);
+          const op = +(Math.random() * (maxOp - minOp) + minOp).toFixed(2);
+          s.push(`${x}px ${y}px 0 ${spread}px rgba(255,255,255,${op})`);
+        }
+        el.style.boxShadow = s.join(',');
+      }
+      makeStars(document.getElementById('sf1'), 110, 0, 0.04, 0.16);
+      makeStars(document.getElementById('sf2'),  40, 0, 0.10, 0.07);
+      makeStars(document.getElementById('sf3'),  10, 1, 0.18, 0.40);
+    })();
+
+    /* ── Space ambient ── */
+    const spaceAmbient = document.getElementById('space-ambient');
+    let ambX = window.innerWidth / 2, ambY = window.innerHeight / 2;
+    let aX = ambX, aY = ambY;
+
+    document.addEventListener('mousemove', e => { ambX = e.clientX; ambY = e.clientY; });
+
+    (function ambTick() {
+      aX += (ambX - aX) * 0.012;
+      aY += (ambY - aY) * 0.012;
+      spaceAmbient.style.background =
+        `radial-gradient(800px circle at ${aX.toFixed(1)}px ${aY.toFixed(1)}px, rgba(42,100,160,0.055) 0%, transparent 70%)`;
+      requestAnimationFrame(ambTick);
+    })();
+
+    /* ── Background music ── */
+    const bgAudio = new Audio('../lofi-bg.mp3');
+    bgAudio.loop   = true;
+    bgAudio.volume = 0;
+
+    let audioReady = false;
+
+    function initAudio() {
+      if (audioReady) return;
+      audioReady = true;
+      bgAudio.play().catch(() => {});
+      let v = 0;
+      const step = () => {
+        v = Math.min(v + 0.004, 0.018);
+        bgAudio.volume = v;
+        if (v < 0.018) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    document.addEventListener('click', initAudio, { once: true });
+
+    /* ── Animations ── */
+    const animScreens = document.querySelectorAll('.anim-screen');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.25 });
+
+    animScreens.forEach(s => observer.observe(s));
+  </script>
+
+</body>
+</html>

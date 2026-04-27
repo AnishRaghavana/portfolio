@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anish Raghavan</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0A0A0A;
+      --fg:     #EDEBE7;
+      --mid:    #888;
+      --dim:    #3A3A3A;
+      --gold:   #B8924A;
+      --orange: #C8572A;
+      --blue:   #2A7BAF;
+      --rule:   #1A1A1A;
+      --card:   #101010;
+      --font:   -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: #080808; /* owns the base dark — body is transparent so stars show */
+    }
+
+    body {
+      font-family: var(--font);
+      background: transparent;
+      color: var(--fg);
+      line-height: 1.6;
+      font-size: 16px;
+      cursor: none;
+    }
+
+    /* ── Space background ── */
+    #space-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .sf {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      top: 0;
+      left: 0;
+      border-radius: 50%;
+      /* box-shadow (stars) injected by JS */
+    }
+
+    #sf1 { animation: sdrift1 200s ease-in-out infinite alternate; }
+    #sf2 { animation: sdrift2 280s ease-in-out infinite alternate; }
+    #sf3 { animation: sdrift3 360s ease-in-out infinite alternate; }
+
+    @keyframes sdrift1 {
+      from { transform: translate(0px,   0px);  }
+      to   { transform: translate(-22px, -14px); }
+    }
+    @keyframes sdrift2 {
+      from { transform: translate(0px,  0px);   }
+      to   { transform: translate(18px, -28px); }
+    }
+    @keyframes sdrift3 {
+      from { transform: translate(0px,  0px);   }
+      to   { transform: translate(-12px, 22px); }
+    }
+
+    /* large diffuse ambient glow that trails the mouse */
+    #space-ambient {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(900px circle at 50% 40%, rgba(42,123,175,0.055) 0%, transparent 70%);
+      will-change: background;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Cursor ── */
+    #cursor-glow {
+      position: fixed;
+      top: -220px; left: -220px;
+      width: 440px; height: 440px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      background: radial-gradient(circle, rgba(42,123,175,0.11) 0%, transparent 68%);
+      will-change: transform;
+      transition: background 2.5s ease;
+    }
+
+    #cursor-dot {
+      position: fixed;
+      top: -3px; left: -3px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+      pointer-events: none;
+      z-index: 10000;
+      will-change: transform;
+      transition: background 2.5s ease;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 200;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 3rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .nav-name { font-size: 0.88rem; font-weight: 500; letter-spacing: 0.04em; }
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+
+    .nav-links a {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      transition: color 0.4s;
+    }
+    .nav-links a:hover { color: var(--fg); }
+
+    /* ── Hero ── */
+    #hero {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 12rem 3rem 4rem;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-name {
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 2rem;
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--mid);
+      max-width: 460px;
+      line-height: 1.85;
+      margin-bottom: 3rem;
+    }
+
+    .hero-links { display: flex; gap: 2rem; flex-wrap: wrap; }
+
+    .hero-links a, .hero-links span {
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      color: var(--mid);
+    }
+
+    .hero-links a {
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 3px;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    .hero-links a:hover { color: var(--fg); border-color: #444; }
+
+    /* ── Section ── */
+    .section {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 3rem 3rem 7rem;
+    }
+
+    .section-header {
+      margin-bottom: 3rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* ── Work Grid ── */
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .work-item {
+      background: var(--bg);
+      padding: 2.25rem 2.5rem;
+      transition: background 0.5s;
+    }
+    .work-item:hover { background: var(--card); }
+
+    .work-client {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.65rem;
+    }
+
+    .work-title {
+      font-size: 1.1rem;
+      font-weight: 400;
+      line-height: 1.35;
+      margin-bottom: 0.5rem;
+    }
+
+    .work-role {
+      font-size: 0.73rem;
+      color: var(--mid);
+      line-height: 1.5;
+    }
+
+    .work-tags {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .tag {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      border: 1px solid #2a2a2a;
+      padding: 0.18rem 0.5rem;
+      border-radius: 2px;
+    }
+
+    /* ── Additional projects dropdown ── */
+    .more-work-details {
+      margin-top: 3.5rem;
+    }
+    .more-work-details[open] .more-work-chevron {
+      transform: rotate(180deg);
+    }
+    .more-work-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--rule);
+      cursor: none;
+      list-style: none;
+      user-select: none;
+    }
+    .more-work-summary::-webkit-details-marker { display: none; }
+    .more-work-summary .section-label { color: var(--mid); }
+    .more-work-chevron {
+      font-size: 1.1rem;
+      color: var(--mid);
+      transition: transform 0.3s ease;
+      display: inline-block;
+      line-height: 1;
+    }
+    .more-work-details .work-grid--compact {
+      margin-top: 1.5rem;
+    }
+
+    /* ── Compact grid (summaries) ── */
+    .work-grid--compact {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .work-item--compact {
+      padding: 1.5rem 1.75rem;
+    }
+
+    .work-item--compact .work-title {
+      font-size: 0.92rem;
+    }
+
+    .work-item--compact .work-tags {
+      margin-top: 1rem;
+    }
+
+    .work-desc {
+      font-size: 0.76rem;
+      color: var(--mid);
+      line-height: 1.75;
+      margin-top: 0.55rem;
+    }
+
+    .work-link {
+      display: inline-block;
+      margin-top: 1.1rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 2px;
+      transition: color 0.3s, border-color 0.3s;
+      text-decoration: none;
+    }
+    .work-link:hover { color: var(--mid); border-color: #444; }
+
+    /* ── About ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      font-size: 0.92rem;
+      color: var(--mid);
+      line-height: 1.95;
+      margin-bottom: 1.25rem;
+    }
+
+    .edu-block { margin-top: 2.5rem; }
+
+    .block-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 1rem;
+    }
+
+    .edu-entry { padding: 1.25rem 0; border-bottom: 1px solid var(--rule); }
+    .edu-school { font-size: 0.92rem; font-weight: 500; }
+    .edu-degree { font-size: 0.78rem; color: var(--mid); margin-top: 0.25rem; line-height: 1.6; }
+    .edu-date { font-size: 0.68rem; color: var(--dim); margin-top: 0.25rem; }
+
+    .skills-grid { display: flex; flex-direction: column; gap: 2rem; }
+
+    .skill-group-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 0.6rem;
+    }
+    .skill-group-body {
+      font-size: 0.82rem;
+      color: var(--mid);
+      line-height: 2;
+    }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--rule); }
+
+    .footer-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .foot-name { font-size: 0.95rem; font-weight: 400; margin-bottom: 0.25rem; }
+    .foot-role { font-size: 0.72rem; color: var(--mid); }
+
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a {
+      font-size: 0.72rem;
+      color: var(--mid);
+      border-bottom: 1px solid transparent;
+      padding-bottom: 2px;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    .footer-links a:hover { color: var(--fg); border-color: #444; }
+
+    /* ── Mute button ── */
+    #mute-btn {
+      position: fixed;
+      bottom: 2rem;
+      left: 2rem;
+      z-index: 200;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--dim);
+      background: transparent;
+      color: var(--dim);
+      cursor: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.3s, border-color 0.3s;
+      padding: 0;
+    }
+    #mute-btn:hover { color: var(--mid); border-color: var(--mid); }
+    #mute-btn svg { width: 13px; height: 13px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 720px) {
+      body { cursor: auto; }
+      #cursor-glow, #cursor-dot { display: none; }
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { gap: 1.25rem; }
+      #hero { padding: 9rem 1.5rem 4rem; }
+      .section { padding: 3rem 1.5rem 5rem; }
+      .work-grid { grid-template-columns: 1fr; }
+      .work-grid--compact { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .footer-inner { padding: 2rem 1.5rem; flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+      #mute-btn { cursor: pointer; bottom: 1.5rem; left: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- space background — behind everything -->
+  <div id="space-bg" aria-hidden="true">
+    <div class="sf" id="sf1"></div>
+    <div class="sf" id="sf2"></div>
+    <div class="sf" id="sf3"></div>
+  </div>
+  <div id="space-ambient" aria-hidden="true"></div>
+
+  <div id="cursor-glow"></div>
+  <div id="cursor-dot"></div>
+
+  <nav>
+    <span class="nav-name">Anish Raghavan</span>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="mailto:anish.v.raghavan@gmail.com">Contact</a></li>
+    </ul>
+  </nav>
+
+  <header id="hero">
+    <span class="hero-tag">Creative Strategist &middot; Brand Builder &middot; Integrated Marketing</span>
+    <h1 class="hero-name">Anish<br>Raghavan</h1>
+    <p class="hero-sub">Hi, I'm Anish. I turn ideas from notes into realized executions, and make people go, "Damn, why didn't I think of that?"</p>
+    <div class="hero-links">
+      <a href="mailto:anish.v.raghavan@gmail.com">anish.v.raghavan@gmail.com</a>
+      <a href="tel:+19727576626">(972) 757-6626</a>
+      <a href="https://linkedin.com/in/anish-raghavan-62705b326" target="_blank" rel="noopener">LinkedIn &nearr;</a>
+      <span>Dallas, TX</span>
+    </div>
+  </header>
+
+  <section id="work" class="section">
+    <div class="section-header">
+      <span class="section-label">Selected Work</span>
+    </div>
+
+    <!-- ── Featured presentations ── -->
+    <div class="work-grid">
+
+      <a class="work-item" href="nfl/index.html" style="display:block;cursor:none;">
+        <div class="work-client">NFL &middot; NSAC District 10</div>
+        <div class="work-title">"Push Forward" Campaign</div>
+        <div class="work-role">Creative Art Director &middot; Presenter &middot; Jan–Apr 2025</div>
+        <div class="work-tags">
+          <span class="tag">Integrated Campaign</span>
+          <span class="tag">Art Direction</span>
+          <span class="tag">2nd Place NSAC</span>
+        </div>
+      </a>
+
+      <a class="work-item" href="artist-boat/index.html" style="display:block;cursor:none;">
+        <div class="work-client">Artist Boat &middot; Capstone</div>
+        <div class="work-title">"Be Someone in a Million" Campaign</div>
+        <div class="work-role">Account Director &middot; Agency Lead &middot; Aug 2025–Apr 2026</div>
+        <div class="work-tags">
+          <span class="tag">Account Direction</span>
+          <span class="tag">Nonprofit</span>
+          <span class="tag">$100K Budget</span>
+        </div>
+      </a>
+
+      <a class="work-item" href="fora/index.html" style="display:block;cursor:none;">
+        <div class="work-client">Fora &middot; Venture</div>
+        <div class="work-title">Debate Social Platform Brand</div>
+        <div class="work-role">Co-Founder &middot; Creative Director &middot; Brand Strategist</div>
+        <div class="work-tags">
+          <span class="tag">Brand Identity</span>
+          <span class="tag">Co-Founder</span>
+          <span class="tag">Go-to-Market</span>
+        </div>
+      </a>
+
+      <div class="work-item">
+        <div class="work-client">Tulu Ltd. &middot; London</div>
+        <div class="work-title">AI Marketing Automation System</div>
+        <div class="work-role">Marketing Intern &middot; May–Aug 2025</div>
+        <div class="work-tags">
+          <span class="tag">AI Automation</span>
+          <span class="tag">N8N</span>
+          <span class="tag">300+ Locations</span>
+        </div>
+      </div>
+
+      <div class="work-item">
+        <div class="work-client">Linjer Jewelry</div>
+        <div class="work-title">Social Media Strategy</div>
+        <div class="work-role">Brand Strategist &middot; Content Strategist</div>
+        <div class="work-tags">
+          <span class="tag">Social Strategy</span>
+          <span class="tag">Content</span>
+          <span class="tag">UGC Campaign</span>
+        </div>
+      </div>
+
+      <a class="work-item" href="mahindra/index.html" style="display:block;cursor:none;">
+        <div class="work-client">Mahindra USA</div>
+        <div class="work-title">"Family Driven. Field Tested."</div>
+        <div class="work-role">Lead Campaign Strategist &middot; Media Planner</div>
+        <div class="work-tags">
+          <span class="tag">Brand Positioning</span>
+          <span class="tag">Media Planning</span>
+          <span class="tag">Experiential</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- ── Additional projects dropdown ── -->
+    <details class="more-work-details">
+      <summary class="more-work-summary">
+        <span class="section-label">Additional Projects</span>
+        <span class="more-work-chevron">&#8964;</span>
+      </summary>
+
+    <div class="work-grid work-grid--compact">
+
+      <div class="work-item work-item--compact">
+        <div class="work-client">AT&amp;T</div>
+        <div class="work-title">"Create Your Digital Destiny"</div>
+        <div class="work-role">Campaign Strategist &middot; Creative</div>
+        <div class="work-desc">Full-funnel Gen Z campaign repositioning AT&T from utility to launchpad for unconventional living. Built on 133 survey respondents, cross-channel creative, and a 22-page plansbook.</div>
+        <div class="work-tags">
+          <span class="tag">Campaign Strategy</span>
+          <span class="tag">Gen Z</span>
+          <span class="tag">Multi-Channel</span>
+        </div>
+        <span class="work-link">Deck available on request</span>
+      </div>
+
+      <div class="work-item work-item--compact">
+        <div class="work-client">Rodney Jones Law Group</div>
+        <div class="work-title">$1M Brand Expansion Strategy</div>
+        <div class="work-role">Creative Strategist &middot; Art Director</div>
+        <div class="work-desc">Steered a Texas personal injury firm away from aggressive legal branding toward community trust. Built personas, a three-part campaign arc, and TV spot art direction with a team of eight.</div>
+        <div class="work-tags">
+          <span class="tag">Brand Strategy</span>
+          <span class="tag">Art Direction</span>
+          <span class="tag">$1M Budget</span>
+        </div>
+        <a class="work-link" href="Portfolio%20Projects/Rodney%20Jones/RJ%20LAW%20GROUP%20P.C.%20-%20PROPOSAL%20-%20GROUP%209.pdf" target="_blank" rel="noopener">View Deck &nearr;</a>
+      </div>
+
+      <div class="work-item work-item--compact">
+        <div class="work-client">ASRA Wellness</div>
+        <div class="work-title">Wellness App Brand Identity</div>
+        <div class="work-role">Art Director &middot; Brand Designer</div>
+        <div class="work-desc">Identity built around flow — curves, continuous motion, and a palette of navy, gold, and sky blue that balances authority with warmth. Full logo suite, app icon, and branded assets, from brief to delivery.</div>
+        <div class="work-tags">
+          <span class="tag">Brand Identity</span>
+          <span class="tag">Logo Design</span>
+          <span class="tag">App Icon</span>
+        </div>
+        <a class="work-link" href="Portfolio%20Projects/Asra/ASRA_Portfolio.pdf" target="_blank" rel="noopener">View Deck &nearr;</a>
+      </div>
+
+      <div class="work-item work-item--compact" style="opacity:0.35; pointer-events:none;">
+        <div class="work-client" style="color:var(--dim);">More</div>
+        <div class="work-title" style="color:var(--mid);">More projects incoming</div>
+        <div class="work-role">&nbsp;</div>
+        <div class="work-tags">
+          <span class="tag">Coming Soon</span>
+        </div>
+      </div>
+
+      <div class="work-item work-item--compact">
+        <div class="work-client">Student Design Haus</div>
+        <div class="work-title">Bauhaus-Inspired Brand System</div>
+        <div class="work-role">Brand Designer &middot; Visual Identity</div>
+        <div class="work-desc">Full brand identity for a concept agency connecting clients with student designers — logo, style guide, and promo poster built on bold geometry, Bauhaus-primary palette, and type that earns attention.</div>
+        <div class="work-tags">
+          <span class="tag">Brand Identity</span>
+          <span class="tag">Visual Design</span>
+          <span class="tag">Style Guide</span>
+        </div>
+        <a class="work-link" href="Portfolio%20Projects/Student%20Haus/IMG_5442.JPG" target="_blank" rel="noopener">View Work &nearr;</a>
+      </div>
+
+      <div class="work-item work-item--compact">
+        <div class="work-client">Medical City Children&rsquo;s Hospital</div>
+        <div class="work-title">Texas Recipe Book Cover</div>
+        <div class="work-role">Editorial Illustrator &middot; Designer &middot; 2022–23</div>
+        <div class="work-desc">Cover illustration for a children's recipe publication — a carrot rocket launching through outer space. Bold linework, saturated color, and a concept built to make healthy food feel like an adventure.</div>
+        <div class="work-tags">
+          <span class="tag">Illustration</span>
+          <span class="tag">Editorial Design</span>
+          <span class="tag">Children's</span>
+        </div>
+        <a class="work-link" href="Portfolio%20Projects/Children's%20Book%20Cover/planet.png" target="_blank" rel="noopener">View Work &nearr;</a>
+      </div>
+
+    </div>
+    </details>
+  </section>
+
+  <section id="about" class="section">
+    <div class="section-header">
+      <span class="section-label">About</span>
+    </div>
+    <div class="about-grid">
+
+      <div>
+        <div class="about-text">
+          <p>Creative Strategist and brand builder leading integrated campaigns, developing brand identities, and executing multi-channel digital strategies from concept to delivery.</p>
+          <p>Early adopter of AI across creative production, workflow automation, and strategic ideation — a track record of using emerging technology to work faster and think bigger.</p>
+          <p>Currently President of the American Advertising Federation at the University of Houston — an 80+ member chapter spanning creative, media, strategy, and production.</p>
+        </div>
+
+        <div class="edu-block">
+          <div class="block-label">Education</div>
+          <div class="edu-entry">
+            <div class="edu-school">University of Houston</div>
+            <div class="edu-degree">B.A. Strategic Communications &middot; Concentration in Advertising<br>Minor: Entrepreneurship</div>
+            <div class="edu-date">Expected June 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="skills-grid">
+        <div class="skill-group">
+          <div class="skill-group-label">Strategy &amp; Marketing</div>
+          <div class="skill-group-body">Creative Strategy &middot; Brand Development &middot; Integrated Marketing &middot; Campaign Management &middot; Copywriting &middot; Art Direction &middot; Brand Storytelling &middot; Consumer Insights &middot; Audience Research &middot; Creative Briefs</div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-label">Digital &amp; Social</div>
+          <div class="skill-group-body">Paid Social &middot; Email Marketing &middot; Social Media Strategy &middot; Content Creation &middot; Marketing Automation &middot; Performance Analysis &middot; KPI Tracking</div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-label">Tools &amp; Technology</div>
+          <div class="skill-group-body">Adobe Creative Suite (Certified) &middot; Canva &middot; Claude &middot; Gemini &middot; N8N &middot; Salesforce &middot; Google Workspace &middot; Microsoft Office</div>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-label">Certifications</div>
+          <div class="skill-group-body">Adobe Certified: Photoshop &middot; Illustrator &middot; InDesign</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer id="contact">
+    <div class="footer-inner">
+      <div>
+        <div class="foot-name">Anish Raghavan</div>
+        <div class="foot-role">Creative Strategist &middot; Brand Builder &middot; Dallas, TX</div>
+      </div>
+      <div class="footer-links">
+        <a href="mailto:anish.v.raghavan@gmail.com">Email</a>
+        <a href="tel:+19727576626">Phone</a>
+        <a href="https://linkedin.com/in/anish-raghavan-62705b326" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </footer>
+
+  <button id="mute-btn" aria-label="Toggle ambient audio">
+    <svg id="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+    </svg>
+    <svg id="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <line x1="23" y1="9" x2="17" y2="15"/>
+      <line x1="17" y1="9" x2="23" y2="15"/>
+    </svg>
+  </button>
+
+  <script>
+    /* ── Starfield ── */
+    (function() {
+      function makeStars(el, count, spread, minOp, maxOp) {
+        const W = Math.max(window.innerWidth,  1600);
+        const H = Math.max(window.innerHeight, 900);
+        let s = [];
+        for (let i = 0; i < count; i++) {
+          const x  = Math.round(Math.random() * W * 2 - W * 0.5);
+          const y  = Math.round(Math.random() * H * 2 - H * 0.5);
+          const op = +(Math.random() * (maxOp - minOp) + minOp).toFixed(2);
+          s.push(`${x}px ${y}px 0 ${spread}px rgba(255,255,255,${op})`);
+        }
+        el.style.boxShadow = s.join(',');
+      }
+      makeStars(document.getElementById('sf1'), 130, 0, 0.04, 0.18);
+      makeStars(document.getElementById('sf2'),  50, 0, 0.12, 0.32);
+      makeStars(document.getElementById('sf3'),  12, 1, 0.20, 0.45);
+    })();
+
+    /* ── Space ambient (large slow mouse glow) ── */
+    const spaceAmbient = document.getElementById('space-ambient');
+    let ambX = window.innerWidth / 2, ambY = window.innerHeight * 0.4;
+    let aX = ambX, aY = ambY;
+    let ambRGB = '42,123,175';
+
+    document.addEventListener('mousemove', e => { ambX = e.clientX; ambY = e.clientY; });
+
+    (function ambTick() {
+      aX += (ambX - aX) * 0.015;   /* very slow lag — feels like light drifting in space */
+      aY += (ambY - aY) * 0.015;
+      spaceAmbient.style.background =
+        `radial-gradient(900px circle at ${aX.toFixed(1)}px ${aY.toFixed(1)}px, rgba(${ambRGB},0.06) 0%, transparent 70%)`;
+      requestAnimationFrame(ambTick);
+    })();
+
+    /* ── Cursor ── */
+    const glow = document.getElementById('cursor-glow');
+    const dot  = document.getElementById('cursor-dot');
+    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    let gx = mx, gy = my;
+
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+    (function tick() {
+      gx += (mx - gx) * 0.07;
+      gy += (my - gy) * 0.07;
+      glow.style.transform = `translate(${gx}px,${gy}px)`;
+      dot.style.transform  = `translate(${mx}px,${my}px)`;
+      requestAnimationFrame(tick);
+    })();
+
+    /* ── Section color map ── */
+    const PALETTE = {
+      hero:    [42,  123, 175],  // ocean blue
+      work:    [184, 146, 74 ],  // gold
+      about:   [200, 87,  42 ],  // orange
+      contact: [30,  90,  130],  // deep blue
+    };
+
+    let activeSection = 'hero';
+
+    function applyColor(key) {
+      if (key === activeSection) return;
+      activeSection = key;
+      const [r, g, b] = PALETTE[key];
+      glow.style.background = `radial-gradient(circle, rgba(${r},${g},${b},0.11) 0%, transparent 68%)`;
+      dot.style.background   = `rgb(${r},${g},${b})`;
+      ambRGB = `${r},${g},${b}`;   /* shift ambient to match section */
+      if (audioReady) pitchShift(key);
+    }
+
+    const sectionObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting && PALETTE[e.target.id]) applyColor(e.target.id);
+      });
+    }, { threshold: 0.2 });
+
+    ['hero', 'work', 'about', 'contact'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) sectionObserver.observe(el);
+    });
+
+    /* ── Background music ── */
+    const bgAudio = new Audio('lofi-bg.mp3');
+    bgAudio.loop   = true;
+    bgAudio.volume = 0;
+
+    let audioReady = false, muted = false;
+
+    function initAudio() {
+      if (audioReady) return;
+      audioReady = true;
+      bgAudio.play().catch(() => {});
+      /* fade in over 3s */
+      let v = 0;
+      const step = () => {
+        v = Math.min(v + 0.004, 0.018);
+        bgAudio.volume = v;
+        if (v < 0.018) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    document.addEventListener('click', initAudio, { once: true });
+
+    /* ── Mute ── */
+    const muteBtn = document.getElementById('mute-btn');
+    const iconOn  = document.getElementById('icon-on');
+    const iconOff = document.getElementById('icon-off');
+
+    muteBtn.addEventListener('click', () => {
+      if (!audioReady) { initAudio(); return; }
+      muted = !muted;
+      bgAudio.volume = muted ? 0 : 0.018;
+      iconOn.style.display  = muted ? 'none' : '';
+      iconOff.style.display = muted ? ''     : 'none';
+    });
+  </script>
+
+</body>
+</html>
